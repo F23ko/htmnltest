@@ -1,0 +1,117 @@
+package test;
+
+import org.nlp.util.LineIterator;
+import org.nlp.util.Tokenizer;
+import org.nlp.vec.VectorModel;
+import org.nlp.vec.Word2Vec;
+
+import java.io.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * @author siegfang
+ */
+public class TestWord2Vec {
+
+    public static void readByJava(String textFilePath, String modelFilePath){
+
+        Word2Vec wv = new Word2Vec.Factory()
+                .setMethod(Word2Vec.Method.Skip_Gram)
+                .setNumOfThread(1).build();
+
+        try (BufferedReader br =
+                     new BufferedReader(new FileReader(textFilePath))) {
+            int lineCount = 0;
+            for (String line = br.readLine(); line != null;
+                    line = br.readLine()){
+                wv.readTokens(new Tokenizer(line, " "));
+//                System.out.println(line);
+                lineCount ++;
+
+            }
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        wv.training();
+        wv.saveModel(new File(modelFilePath));
+    }
+
+    public static void testVector(String modelFilePath){
+
+        //載入學習檔
+        VectorModel vm = VectorModel.loadFromFile(modelFilePath);
+        Set<VectorModel.WordScore> result1 = Collections.emptySet();
+
+        //計算「Time」的相關字詞
+        result1 = vm.similar("Time");
+
+        //顯示字詞的相關程度
+        for (VectorModel.WordScore we : result1){
+            System.out.println(we.name + " :\t" + we.score);
+        }
+        // 這是我顯示後所顯示的東西
+//        of :	0.97871757
+//                ^ :	0.9784566
+//        Jump :	0.9783486
+//        Computer :	0.978347
+//        up :	0.97821766
+//        time :	0.97809666
+//        the :	0.9776126
+//        The :	0.9774985
+//        Complexity :	0.97733635
+//        some :	0.9772903
+//        problems :	0.97715616
+//        have :	0.97703165
+//        is :	0.9768651
+//        in :	0.97683555
+//        exponential :	0.976809
+//        quasi-polynomial :	0.97669274
+//        and :	0.97664815
+//        not :	0.97655123
+//        algorithm :	0.9760096
+//        sub-exponential :	0.9753874
+//        this :	0.9751102
+//        that :	0.9749506
+//        input :	0.9748164
+//        NP-complete :	0.97475857
+//        algorithms. :	0.97462755
+//        polynomial :	0.97462744
+//        to :	0.9743812
+//        by :	0.9742216
+//        on :	0.97418565
+//        number :	0.9741459
+//        any :	0.9741333
+//        which :	0.9740525
+//        a :	0.9738385
+//        than :	0.9735495
+//        run :	0.9733688
+//        T(n) :	0.9733269
+//        it :	0.9730141
+//        algorithms :	0.9729912
+//        be :	0.97290057
+//        we :	0.9728561
+    }
+
+    public static void main(String[] args){
+
+        //這個是讀取檔案的位置
+        //你要先餵資料給他，讓他學習
+        //我抓的是這個網頁上的資料（複製貼到檔案裡面）
+        //https://en.wikipedia.org/wiki/Time_complexity#Linear_time
+        String textFilePath = "/home/f23ko/data/corpus.dat";
+
+        //這個是學習之後的學習檔案會存放的位置。這個不建立檔案沒關係，沒檔案的話他會自動建立
+        String modelFilePath = "/home/f23ko/data/corpus.nn";
+
+        //告訴Word2Vec，讀取textFilePath，開啟學習模式，並把學習的結果寫到modelFilePath
+        readByJava(textFilePath, modelFilePath);
+
+        //顯示字詞的關係指數，指定的字詞在testVector()裡面
+        testVector(modelFilePath);
+    }
+
+}
